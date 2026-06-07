@@ -137,7 +137,7 @@ def send_discord_heartbeat(check_count: int) -> None:
         ),
     }
     try:
-        request.post(DISCORD_WEBHOOK_URL, json-payload, timeout=10)
+        requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
     except requests.RequestException:
         pass  # Heartbeat failures are non-critical
 
