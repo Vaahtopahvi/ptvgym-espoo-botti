@@ -63,21 +63,22 @@ def has_products(html: str) -> bool:
     if NO_PRODUCTS_TEXT in page_text:
         return False
 
-    print("lol 0")
     #secondary signal. look for products and add to cart buttons
     product_indicators = [
         soup.find("a", class_="jasenyys-espoo-toistuva-korttiveloitus"),
         soup.find("h4", class_="product-title"),
         soup.find("button", class_="btn btn-oldstyle-info btn-block"),
-        soup.find("a", class_="ennakkojasenyys-espoo-toistuva-korttiveloitus")
+        soup.find("a", class_="ennakkojasenyys-espoo-toistuva-korttiveloitus"),
+        soup.find("span", class_="product-price"),
+        soup.find("div", class_="container-folio row"),
+        soup.find("div", class_="container-folio row product-grid"),
+        soup.find("div")
     ]
-    print("lol")
-    return any(product_indicatios)
+    return any(product_indicators)
 
 def extract_product_names(html: str) -> list[str]:
     """try pulling product names from the page"""
     soup = BeautifulSoup(html, "html.parser")
-    print("lol 2")
     names = []
     # common patterns for product title elements
     for tag in soup.select(".product-title, .product-name, h2.title, h3.title, h4.title"):
@@ -93,10 +94,10 @@ def send_discord_alert(product_name: list[str]) -> None:
         return
 
     timestamp = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-    decription = (
+    description = (
         "Jäsenyydet löytyivät!!!!!!!!!!!"
-        if not product_names
-        else "\n".join(f"• {n}" for n in product_names)
+        if not product_name
+        else "\n".join(f"• {n}" for n in product_name)
     )
 
     payload = {
@@ -117,7 +118,7 @@ def send_discord_alert(product_name: list[str]) -> None:
     }
 
     try:
-        response = requests.post(DISCORD_WEBHOOK_URL, json-payload, timeout=10)
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
         response.raise_for_status()
         log.info("Discord notification sent succesfully")
     except requests.RequestException as e:
@@ -168,7 +169,7 @@ def main() -> None:
             log.warning("Ohitetaan tämä tarkistus kun sivun tietoja ei löytynyt.")
         elif has_products(html):
             log.info("JÄSENYYDET LÖYTYIVÄT!. Lähetetään discord viesti......")
-            names = extract_prodcut_names(html)
+            names = extract_product_names(html)
             send_discord_alert(names)
             alerted = True
             log.info("Ilmoitus lähetetty. Tarkistellaan vielä sivua muutosten varalta...")
